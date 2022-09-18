@@ -40,6 +40,15 @@ services:
     ports:
       - $API_GATEWAY_LOCAL_PORT:$API_GATEWAY_DOCKER_PORT
 
+  rabbitmq:
+    container_name: rabbitMQ
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
 volumes:
   db:
-    

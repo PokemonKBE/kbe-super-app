@@ -15,7 +15,7 @@ services:
       - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
       - MYSQL_DATABASE=$MYSQLDB_DATABASE
     ports:
-      - $MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT
+      - $MYSQLDB_WAREHOUSE_LOCAL_PORT:$MYSQLDB_WAREHOUSE_DOCKER_PORT
     volumes:
       - db:/var/lib/mysql
 
@@ -40,6 +40,30 @@ services:
     ports:
       - $API_GATEWAY_LOCAL_PORT:$API_GATEWAY_DOCKER_PORT
 
+  product-service:
+    container_name: product-service
+    depends_on:
+      - mysqldb-product
+    build: '../product-service'
+    ports:
+      - $PRODUCT_LOCAL_PORT:$PRODUCT_DOCKER_PORT
+    volumes:
+      - .m2:/root/.m2
+
+
+  mysqldb-product:
+    container_name: mysql-product
+    image: mysql:5.7
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - MYSQL_DATABASE=$MYSQLDB_DATABASE
+    ports:
+      - $MYSQLDB_PRODUCT_LOCAL_PORT:$MYSQLDB_PRODUCT_DOCKER_PORT
+    volumes:
+      - db-product:/var/lib/mysql
+
   rabbitmq:
     container_name: rabbitMQ
     image: rabbitmq:3-management-alpine
@@ -52,3 +76,4 @@ services:
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
 volumes:
   db:
+  db-product:

@@ -40,20 +40,11 @@ services:
     ports:
       - $API_GATEWAY_LOCAL_PORT:$API_GATEWAY_DOCKER_PORT
 
-  product-service:
-    container_name: product-service
-    depends_on:
-      - mysqldb-product
-    build: '../product-service'
-    ports:
-      - $PRODUCT_LOCAL_PORT:$PRODUCT_DOCKER_PORT
-    volumes:
-      - .m2:/root/.m2
-
-
   mysqldb-product:
     container_name: mysql-product
     image: mysql:5.7
+    depends_on:
+      - warehouse
     restart: unless-stopped
     env_file: ./.env
     environment:
@@ -63,6 +54,16 @@ services:
       - $MYSQLDB_PRODUCT_LOCAL_PORT:$MYSQLDB_PRODUCT_DOCKER_PORT
     volumes:
       - db-product:/var/lib/mysql
+
+  product-service:
+    container_name: product-service
+    depends_on:
+      - mysqldb-product
+    build: '../product-service'
+    ports:
+      - $PRODUCT_LOCAL_PORT:$PRODUCT_DOCKER_PORT
+    volumes:
+      - .m2:/root/.m2
 
   rabbitmq:
     container_name: rabbitMQ

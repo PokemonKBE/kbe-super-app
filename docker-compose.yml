@@ -75,6 +75,15 @@ services:
     volumes:
       - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+
+  currency-service:
+    container_name: currency-service
+    build: '../currency-service'
+
+  price-service:
+    container_name: price-service
+    build: '../price-service'
+
 volumes:
   db:
   db-product:

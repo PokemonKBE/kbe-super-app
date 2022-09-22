@@ -7,7 +7,7 @@ services:
     - $FRONTEND_LOCAL_PORT:$FRONTEND_DOCKER_PORT
 
   mysqldb:
-    container_name: mysql-warehouse
+    container_name: warehouse-mysql
     image: mysql:5.7
     restart: unless-stopped
     env_file: ./.env
@@ -41,7 +41,7 @@ services:
       - $API_GATEWAY_LOCAL_PORT:$API_GATEWAY_DOCKER_PORT
 
   mysqldb-product:
-    container_name: mysql-product
+    container_name: product-mysql
     image: mysql:5.7
     depends_on:
       - warehouse
@@ -78,10 +78,14 @@ services:
 
   currency-service:
     container_name: currency-service
+    depends_on:
+      - rabbitmq
     build: '../currency-service'
 
   price-service:
     container_name: price-service
+    depends_on:
+      - rabbitmq
     build: '../price-service'
 
 volumes:

@@ -6,6 +6,12 @@ services:
     ports:
     - $FRONTEND_LOCAL_PORT:$FRONTEND_DOCKER_PORT
 
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    ports:
+      - $REDIS_LOCAL_PORT:$REDIS_DOCKER_PORT
+    command: redis-server
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:17.0.0
@@ -70,7 +76,7 @@ services:
     container_name: product-service
     depends_on:
       - mysqldb-product
-    build: '../ProduktMicroService'
+    build: '../product-service'
     ports:
       - $PRODUCT_LOCAL_PORT:$PRODUCT_DOCKER_PORT
     volumes:

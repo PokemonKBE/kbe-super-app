@@ -1,10 +1,24 @@
 version: "3.9"
 services:
+  api-gateway:
+    container_name: api-gateway
+    build: '../api-gateway'
+    ports:
+      - $API_GATEWAY_LOCAL_PORT:$API_GATEWAY_DOCKER_PORT
+
+  currency-service:
+    container_name: currency-service
+    depends_on:
+      - rabbitmq
+    build: '../currency-service'
+
   pokemon-frontend:
     container_name: frontend
-    build: '../frontend'
+    build: '../pokemon-frontend'
+    depends_on:
+      - keycloak
     ports:
-    - $FRONTEND_LOCAL_PORT:$FRONTEND_DOCKER_PORT
+      - $FRONTEND_LOCAL_PORT:$FRONTEND_DOCKER_PORT
 
   keycloak:
     container_name: keycloak
@@ -16,40 +30,6 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=admin
     command:
       - start-dev
-
-  mysqldb:
-    container_name: warehouse-mysql
-    image: mysql:5.7
-    restart: unless-stopped
-    env_file: ./.env
-    environment:
-      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
-      - MYSQL_DATABASE=$MYSQLDB_DATABASE
-    ports:
-      - $MYSQLDB_WAREHOUSE_LOCAL_PORT:$MYSQLDB_WAREHOUSE_DOCKER_PORT
-    volumes:
-      - db:/var/lib/mysql
-
-  warehouse:
-    container_name: warehouse
-    depends_on:
-      - mysqldb
-    build: '../warehouse/pokemon-app'
-    env_file: ./.env
-    ports:
-      - $WAREHOUSE_LOCAL_PORT:$WAREHOUSE_DOCKER_PORT
-    expose:
-      - 8081
-    volumes:
-      - .m2:/root/.m2
-    stdin_open: true
-    tty: true
-
-  api-gateway:
-    container_name: api-gateway
-    build: '../api-gateway'
-    ports:
-      - $API_GATEWAY_LOCAL_PORT:$API_GATEWAY_DOCKER_PORT
 
   mysqldb-product:
     container_name: product-mysql
@@ -66,11 +46,31 @@ services:
     volumes:
       - db-product:/var/lib/mysql
 
+  mysqldb-warehouse:
+    container_name: warehouse-mysql
+    image: mysql:5.7
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - MYSQL_DATABASE=$MYSQLDB_DATABASE
+    ports:
+      - $MYSQLDB_WAREHOUSE_LOCAL_PORT:$MYSQLDB_WAREHOUSE_DOCKER_PORT
+    volumes:
+      - db-warehouse:/var/lib/mysql
+
+  price-service:
+    container_name: price-service
+    depends_on:
+      - rabbitmq
+    build: '../price-service'
+
   product-service:
     container_name: product-service
     depends_on:
-      - mysqldb-product
-    build: '../ProduktMicroService'
+      - mysqldb-warehouse
+      - redis
+    build: '../product-service'
     ports:
       - $PRODUCT_LOCAL_PORT:$PRODUCT_DOCKER_PORT
     volumes:
@@ -87,20 +87,28 @@ services:
       - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
 
-  currency-service:
-    container_name: currency-service
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    ports:
+      - $REDIS_LOCAL_PORT:$REDIS_DOCKER_PORT
+    command: redis-server
+
+  warehouse:
+    container_name: warehouse
     depends_on:
-      - rabbitmq
-    build: '../currency-service'
-
-  price-service:
-    container_name: price-service
-    depends_on:
-      - rabbitmq
-    build: '../price-service'
-
-
+      - mysqldb-warehouse
+    build: '../warehouse/pokemon-app'
+    env_file: ./.env
+    ports:
+      - $WAREHOUSE_LOCAL_PORT:$WAREHOUSE_DOCKER_PORT
+    expose:
+      - 8081
+    volumes:
+      - .m2:/root/.m2
+    stdin_open: true
+    tty: true
 
 volumes:
-  db:
+  db-warehouse:
   db-product:

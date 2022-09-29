@@ -14,7 +14,7 @@ services:
 
   pokemon-frontend:
     container_name: frontend
-    build: '../pokemon-frontend'
+    build: '../frontend'
     depends_on:
       - keycloak
     ports:
